@@ -48,8 +48,13 @@ namespace P2PTester.Client
 
         public void Dispose()
         {
-            _tcpClient?.GetStream().Close();
-            _tcpClient?.Close();
+            if (tokenSource != null)
+            {
+                tokenSource.Cancel();
+                tokenSource.Dispose();
+                tokenSource = null;
+            }
+            _tcpClient?.Dispose();
         }
     }
 }
