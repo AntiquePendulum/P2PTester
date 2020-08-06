@@ -39,7 +39,7 @@ namespace P2PTester
         [Command("server")]
         public async Task ServerRunAsync()
         {
-            var server = new Server.Server();
+            using var server = new Server.Server();
             await server.StartAsync();
 
             Console.ReadLine();
