@@ -9,24 +9,20 @@ using Utf8Json;
 
 namespace P2PTester.Server
 {
-    public class Server : IDisposable
+    public class Server
     {
         private TcpListener _tcpListener;
         public CancellationTokenSource tokenSource;
         public CancellationToken token;
 
-        public Server()
+        public async Task StartAsync()
         {
             tokenSource = new CancellationTokenSource();
             token = tokenSource.Token;
-        }
-
-        public async Task StartAsync()
-        {
             var endPoint = IPEndPoint.Parse("0.0.0.0:42151");
             _tcpListener = new TcpListener(endPoint);
             _tcpListener.Start();
-            await Task.Run(async () => await ConnectionWaitAsync(), token);
+            var ig = Task.Run(async () => await ConnectionWaitAsync(), token);
         }
 
         async Task ConnectionWaitAsync()
@@ -43,14 +39,6 @@ namespace P2PTester.Server
                 }
             }
             finally{_tcpListener.Stop();}
-        }
-
-        public void Dispose()
-        {
-            if (tokenSource == null) return;
-            tokenSource.Cancel();
-            tokenSource.Dispose();
-            tokenSource = null;
         }
     }
 }
