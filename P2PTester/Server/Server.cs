@@ -27,6 +27,7 @@ namespace P2PTester.Server
 
         async Task ConnectionWaitAsync()
         {
+            Console.WriteLine("ConnectionWaitAsync");
             if(_tcpListener == null) return;
             try
             {
