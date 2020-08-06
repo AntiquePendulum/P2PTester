@@ -17,7 +17,7 @@ namespace P2PTester
         }
 
         [Command("client")]
-        public async Task ClientRunAsync([Option("i")]string endPoint)
+        public async Task ClientRunAsync([Option("i")] string endPoint)
         {
             if (string.IsNullOrEmpty(endPoint) || IPEndPoint.TryParse(endPoint, out var ipEndPoint))
             {
@@ -27,7 +27,7 @@ namespace P2PTester
 
             using var client = new Client.Client();
             await client.ConnectAsync(ipEndPoint);
-            await client.SendMessageAsync(new Message() {Name = "ABC", Amount = 123});
+            await client.SendMessageAsync(new Message() { Name = "ABC", Amount = 123 });
 
             Console.ReadLine();
         }
