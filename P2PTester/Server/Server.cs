@@ -35,11 +35,18 @@ namespace P2PTester.Server
             if (_tcpListener == null) return;
             try
             {
-                while (!token.IsCancellationRequested)
+                var tcs = new TaskCompletionSource<int>();
+                await using (token.Register(tcs.SetCanceled))
                 {
-                    using var client = await _tcpListener.AcceptTcpClientAsync();
-                    var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
-                    Console.WriteLine($"Name : {message.Name} / Amount : {message.Amount}");
+                    while (!token.IsCancellationRequested)
+                    {
+                        var tcpTask = _tcpListener.AcceptTcpClientAsync();
+                        if ((await Task.WhenAny(tcpTask, tcs.Task)).IsCanceled) break;
+
+                        using var client = tcpTask.Result;
+                        var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
+                        Console.WriteLine($"Name : {message.Name} / Amount : {message.Amount}");
+                    }
                 }
             }
             finally { _tcpListener.Stop(); }
