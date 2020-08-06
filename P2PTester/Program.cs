@@ -41,10 +41,11 @@ namespace P2PTester
         public async Task ServerRunAsync()
         {
             Console.WriteLine("サーバー初期化");
-            using var server = new Server.Server();
+            var server = new Server.Server();
             Console.WriteLine("サーバー開始");
             await server.StartAsync();
 
+            Console.WriteLine("Press any key to continue");
             Console.ReadLine();
         }
     }

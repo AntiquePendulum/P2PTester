@@ -19,6 +19,7 @@ namespace P2PTester.Server
         {
             tokenSource = new CancellationTokenSource();
             token = tokenSource.Token;
+            Console.CancelKeyPress += (obj, args) => Dispose();
         }
 
         public async Task StartAsync()
@@ -26,15 +27,13 @@ namespace P2PTester.Server
             var endPoint = IPEndPoint.Parse("0.0.0.0:42151");
             _tcpListener = new TcpListener(endPoint);
             _tcpListener.Start();
-            await Task.Run(async () => await ConnectionWaitAsync(), token);
+            await ConnectionWaitAsync();
         }
 
         async Task ConnectionWaitAsync()
         {
             Console.WriteLine("ConnectionWaitAsync");
             if (_tcpListener == null) return;
-            try
-            {
                 var tcs = new TaskCompletionSource<int>();
                 await using (token.Register(tcs.SetCanceled))
                 {
@@ -43,13 +42,19 @@ namespace P2PTester.Server
                         var tcpTask = _tcpListener.AcceptTcpClientAsync();
                         if ((await Task.WhenAny(tcpTask, tcs.Task)).IsCanceled) break;
 
-                        using var client = tcpTask.Result;
-                        var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
-                        Console.WriteLine($"Name : {message.Name} / Amount : {message.Amount}");
+                        try
+                        {
+                            using var client = tcpTask.Result;
+                            var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
+                            Console.WriteLine($"Name : {message.Name} / Amount : {message.Amount}");
+                        }
+                        catch (SocketException)
+                        {
+                            
+                        }
                     }
                 }
-            }
-            finally { _tcpListener.Stop(); }
+            _tcpListener.Stop();
         }
 
         public void Dispose()
