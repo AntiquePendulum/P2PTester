@@ -19,7 +19,8 @@ namespace P2PTester
         [Command("client")]
         public async Task ClientRunAsync([Option("i")] string endPoint)
         {
-            if (string.IsNullOrEmpty(endPoint) || IPEndPoint.TryParse(endPoint, out var ipEndPoint))
+            Console.WriteLine(endPoint);
+            if (string.IsNullOrEmpty(endPoint) || !IPEndPoint.TryParse(endPoint, out var ipEndPoint))
             {
                 Console.WriteLine("終了");
                 return;
