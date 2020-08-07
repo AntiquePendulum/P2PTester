@@ -9,13 +9,13 @@ using Utf8Json;
 
 namespace P2PTester.Server
 {
-    public class Server : IDisposable
+    public class Server
     {
         private TcpListener _tcpListener;
         public CancellationTokenSource tokenSource;
         public CancellationToken token;
 
-        public Server()
+        public async Task StartAsync()
         {
             tokenSource = new CancellationTokenSource();
             token = tokenSource.Token;
@@ -55,14 +55,6 @@ namespace P2PTester.Server
                     }
                 }
             _tcpListener.Stop();
-        }
-
-        public void Dispose()
-        {
-            if (tokenSource == null) return;
-            tokenSource.Cancel();
-            tokenSource.Dispose();
-            tokenSource = null;
         }
     }
 }
