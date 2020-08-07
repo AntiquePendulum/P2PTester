@@ -19,25 +19,42 @@ namespace P2PTester.Server
         {
             tokenSource = new CancellationTokenSource();
             token = tokenSource.Token;
+            Console.CancelKeyPress += (obj, args) => Dispose();
+        }
+
+        public async Task StartAsync()
+        {
             var endPoint = IPEndPoint.Parse("0.0.0.0:42151");
             _tcpListener = new TcpListener(endPoint);
             _tcpListener.Start();
-            var ig = Task.Run(async () => await ConnectionWaitAsync(), token);
+            await ConnectionWaitAsync();
         }
 
         async Task ConnectionWaitAsync()
         {
-            if(_tcpListener == null) return;
-            try
-            {
-                while (!token.IsCancellationRequested)
+            Console.WriteLine("ConnectionWaitAsync");
+            if (_tcpListener == null) return;
+                var tcs = new TaskCompletionSource<int>();
+                await using (token.Register(tcs.SetCanceled))
                 {
-                    using var client = await _tcpListener.AcceptTcpClientAsync();
-                    var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
-                    Console.WriteLine($"Name : {message.Name} / Amount : {message.Amount}");
+                    while (!token.IsCancellationRequested)
+                    {
+                        var tcpTask = _tcpListener.AcceptTcpClientAsync();
+                        if ((await Task.WhenAny(tcpTask, tcs.Task)).IsCanceled) break;
+
+                        try
+                        {
+                            using var client = tcpTask.Result;
+                            var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
+                            Console.WriteLine($"Name : {message.Name} / Amount : {message.Amount}");
+                        }
+                        catch (SocketException)
+                        {
+                            
+                        }
+                    }
                 }
-            }
-            finally{_tcpListener.Stop();}
+            _tcpListener.Stop();
         }
     }
 }

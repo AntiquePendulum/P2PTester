@@ -42,7 +42,10 @@ namespace P2PTester.Client
             {
                 await JsonSerializer.SerializeAsync(_tcpClient.GetStream(), message);
             }
-            finally{}
+            finally
+            {
+                _tcpClient.Close();
+            }
 
         }
 
